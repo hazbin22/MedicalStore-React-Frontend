@@ -8,7 +8,7 @@ import Home from './Home';
 import ProtectedRoute from './ProtectedRoute';
 import ProductDetail from './ProductDetail';
 import './App.css';
-
+import Profile from './Profile'; // Add this line
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -56,46 +56,60 @@ function App() {
             <Link to="/" className="navbar-link">Home</Link>
           </li>
           {!isAuthenticated ? (
-            <>
-              <li className="navbar-item"> {/* Changed to className */}
-                <Link to="/register" className="navbar-link">Register</Link> {/* Changed to className */}
-              </li>
-              <li className="navbar-item"> {/* Changed to className */}
-                <Link to="/login" className="navbar-link">Login</Link> {/* Changed to className */}
-              </li>
-            </>
-          ) : (
-            <li className="navbar-item"> {/* Changed to className */}
-              <button onClick={handleLogout} className="logout-button">Logout</button> {/* Changed to className */}
+          <>
+            <li className="navbar-item">
+              <Link to="/register" className="navbar-link">Register</Link>
             </li>
-          )}
+            <li className="navbar-item">
+              <Link to="/login" className="navbar-link">Login</Link>
+            </li>
+          </>
+        ) : (
+          <>
+            <li className="navbar-item"> {/* Add this new nav item */}
+              <Link to="/profile" className="navbar-link">Profile</Link>
+            </li>
+            <li className="navbar-item">
+              <button onClick={handleLogout} className="logout-button">Logout</button>
+            </li>
+          </>
+        )}
         </ul>
       </nav>
 
       <div className="content">
         <Routes>
-          <Route path="/" element={<Home />} />
-          {/* Protected Routes */}
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute>
-                <ProductList />
-              </ProtectedRoute>
-            }
-          />
-          {/* Product Detail Route - Protected */}
-          <Route
-            path="/products/:id" /* <--- ADD THIS NEW ROUTE */
-            element={
-              <ProtectedRoute>
-                <ProductDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-        </Routes>
+              <Route path="/" element={<Home />} />
+              {/* Protected Routes */}
+              <Route
+                path="/products"
+                element={
+                  <ProtectedRoute>
+                    <ProductList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/products/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProductDetail />
+                  </ProtectedRoute>
+                }
+              />
+              {/* New Protected Route for Profile */}
+              {/* Corrected line: path and element are now INSIDE the Route tag */}
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            </Routes>
       </div>
     </div>
   );
