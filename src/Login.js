@@ -13,7 +13,7 @@ function Login({ onLoginSuccess }) { // onLoginSuccess prop will be used later
     setMessage('');
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/accounts/api/login/', {
+      const response = await axios.post('http://127.0.0.1:8000/api/token/', {
         email,
         password,
       });

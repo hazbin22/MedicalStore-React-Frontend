@@ -20,7 +20,7 @@ function Register() {
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/accounts/api/register/', {
+      const response = await axios.post('http://127.0.0.1:8000/accounts/register/', {
         email,
         password,
         password2 // Make sure your Django serializer expects password2
