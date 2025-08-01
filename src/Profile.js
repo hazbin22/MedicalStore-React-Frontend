@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from './api';
 import { useNavigate } from 'react-router-dom';
 
 function Profile() {
@@ -17,22 +17,13 @@ function Profile() {
     const [state, setState] = useState('');
     const [zipCode, setZipCode] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
-    // const [profilePicture, setProfilePicture] = useState(null); // For handling file uploads later
 
     useEffect(() => {
         const fetchProfile = async () => {
-            const accessToken = localStorage.getItem('accessToken');
-            if (!accessToken) {
-                navigate('/login');
-                return;
-            }
-
             try {
-                const response = await axios.get('http://127.0.0.1:8000/accounts/profile/', {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                });
+                // The apiClient interceptor will automatically add the token and refresh it if needed
+                const response = await apiClient.get('/accounts/profile/');
+                
                 setProfile(response.data);
                 // Populate form fields with fetched data
                 setPhoneNumber(response.data.phone_number || '');
@@ -40,21 +31,21 @@ function Profile() {
                 setCity(response.data.city || '');
                 setState(response.data.state || '');
                 setZipCode(response.data.zip_code || '');
-                setDateOfBirth(response.data.date_of_birth || ''); // Dates might need formatting
+                // The 'date' input type expects a YYYY-MM-DD format
+                setDateOfBirth(response.data.date_of_birth || '');
+                
                 setLoading(false);
             } catch (err) {
                 console.error('Failed to fetch profile:', err);
                 setError('Failed to fetch profile. Please try again.');
                 setLoading(false);
-                // Optionally, navigate to login if 401 Unauthorized
+                // If a 401 Unauthorized error occurs, the interceptor should handle it
+                // by redirecting to login. This check is a good fallback.
                 if (err.response && err.response.status === 401) {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
                     navigate('/login');
                 }
             }
         };
-
         fetchProfile();
     }, [navigate]);
 
@@ -64,30 +55,20 @@ function Profile() {
         setMessage('');
         setLoading(true);
 
-        const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) {
-            navigate('/login');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('phone_number', phoneNumber);
-        formData.append('address', address);
-        formData.append('city', city);
-        formData.append('state', state);
-        formData.append('zip_code', zipCode);
-        formData.append('date_of_birth', dateOfBirth); // Ensure date format matches Django's expected format (YYYY-MM-DD)
-        // if (profilePicture) {
-        //     formData.append('profile_picture', profilePicture);
-        // }
-
+        const formData = {
+            phone_number: phoneNumber,
+            address: address,
+            city: city,
+            state: state,
+            zip_code: zipCode,
+            date_of_birth: dateOfBirth, // Ensure date format matches Django's expected format (YYYY-MM-DD)
+        };
+        
         try {
-            const response = await axios.patch('http://127.0.0.1:8000/accounts/profile/', formData, {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    'Content-Type': 'multipart/form-data' // Important for file uploads, even without files, it's safer for FormData
-                },
-            });
+            // The apiClient interceptor handles the Authorization header automatically.
+            // Also, we can send the data as a JSON object instead of FormData unless we need a file upload.
+            const response = await apiClient.patch('/accounts/profile/', formData);
+
             setProfile(response.data);
             setMessage('Profile updated successfully!');
             setLoading(false);
@@ -97,24 +78,23 @@ function Profile() {
             setError('Failed to update profile. Please check your input.');
             setLoading(false);
             if (err.response && err.response.data) {
-                // Display specific validation errors from Django
                 const errorMessages = Object.values(err.response.data).flat().join(' ');
                 setError(`Failed to update profile: ${errorMessages}`);
             }
         }
     };
 
-    // If you decide to add profile picture upload
-    // const handleFileChange = (e) => {
-    //     setProfilePicture(e.target.files[0]);
-    // };
-
     if (loading) {
         return <div className="loading-container">Loading profile...</div>;
     }
 
-    if (error && !profile) { // Show error if profile could not be fetched initially
+    if (error && !profile) {
         return <div className="error-container">{error}</div>;
+    }
+    
+    // Note: The 'profile' object might be null if fetching failed, so we check for it.
+    if (!profile) {
+        return <div className="error-container">No profile data available.</div>;
     }
 
     return (
@@ -128,8 +108,8 @@ function Profile() {
                     <label>Email:</label>
                     <input
                         type="email"
-                        value={profile.email || ''} // Display email from fetched profile
-                        readOnly // Email should be read-only here
+                        value={profile.email || ''}
+                        readOnly
                         className="form-input read-only"
                     />
                 </div>
@@ -187,19 +167,6 @@ function Profile() {
                         className="form-input"
                     />
                 </div>
-                {/* If adding profile picture upload */}
-                {/* <div className="form-group">
-                    <label>Profile Picture:</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileChange}
-                        className="form-input"
-                    />
-                    {profile.profile_picture && (
-                        <img src={profile.profile_picture} alt="Profile" className="profile-picture-preview" />
-                    )}
-                </div> */}
                 <button type="submit" className="form-button">Update Profile</button>
             </form>
         </div>

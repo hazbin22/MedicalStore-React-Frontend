@@ -1,29 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; // We'll install axios shortly
+import apiClient from './api'; 
 import { Link } from 'react-router-dom';
 
 function ProductList() {
-  const [products, setProducts] = useState([]); // State to store products
-  const [loading, setLoading] = useState(true); // State to manage loading status
-  const [error, setError] = useState(null); // State to manage errors
+  const [products, setProducts] = useState([]); 
+  const [loading, setLoading] = useState(true); 
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
-    // This function runs once after the component mounts
+    
     const fetchProducts = async () => {
       try {
-        // Make GET request to your Django API
-        const response = await axios.get('http://127.0.0.1:8000/products/list/');
-        setProducts(response.data); // Update state with fetched data
-        setLoading(false); // Set loading to false
+        
+        const response = await apiClient.get('http://127.0.0.1:8000/products/list/');
+        setProducts(response.data); 
+        setLoading(false); 
       } catch (err) {
-        setError('Failed to fetch products. Please try again later.'); // Set error message
-        setLoading(false); // Set loading to false
-        console.error('Error fetching products:', err); // Log the actual error
+        setError('Failed to fetch products. Please try again later.'); 
+        setLoading(false); 
+        console.error('Error fetching products:', err); 
       }
     };
 
-    fetchProducts(); // Call the fetch function
-  }, []); // Empty dependency array means this effect runs once on mount
+    fetchProducts();
+  }, []); 
 
   if (loading) {
     return <p>Loading products...</p>;

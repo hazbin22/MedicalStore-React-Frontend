@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from './api';
 
 function ProductDetail() {
   const { id } = useParams(); // Get the 'id' from the URL
@@ -13,7 +13,7 @@ function ProductDetail() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://127.0.0.1:8000/products/${id}/`);
+        const response = await apiClient.get(`http://127.0.0.1:8000/products/${id}/`);
         setProduct(response.data);
         setError('');
       } catch (err) {
